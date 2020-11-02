@@ -1,2 +1,2 @@
-# fgv-stochastic-process
-Assignment codes for Stochastic Process (2020, FGV-EMAp).
+# fgv-stochastic-processes
+Assignment codes for Stochastic Processes (2020, FGV-EMAp).
