@@ -58,6 +58,76 @@ class SnakesAndLadders():
         return [np.mean(n), np.std(n)]
 
 
+class MMInfinity():
+    '''
+    Simulate the row M/M/infinity.
+
+    Parameters
+    ----------
+    lambda : float
+        The rate at which people arrive
+    mu : float
+        The rate of time service
+    '''
+    def __init__(self, lambda_, mu):
+        self.lambda_ = lambda_
+        self.mu = mu
+        np.random.seed(42)
+
+    def simulation(self):
+        '''
+        Simulate 1000 times the row.
+        
+        Returns
+        -------
+        time_mean : float
+            The mean of time the row takes to become empty again.
+        time_std : float
+            The std. of time the row takes to become empty again.
+        max_mean : float
+            The mean of the maximum size achieved by the row.
+        max_std : float
+            The std. of the maximum size achieved by the row.
+        '''
+        times = []
+        max_sizes = []
+        for _ in range(1000):
+            time, max_size = self._round()
+            times.append(time)
+            max_sizes.append(max_size)
+
+        return self._report(times, max_sizes)
+
+    def _round(self):
+        X = 1
+        max_X = X
+        time = self._rexp(self.lambda_)
+        while X != 0:
+            forward = self._rexp(self.lambda_)
+            backward = self._rexp(X*self.mu)
+            time += min(forward, backward)
+            if backward < forward:
+                X -= 1
+            else:
+                X += 1
+            if X > max_X:
+                max_X = X
+        return time, max_X
+
+    def _report(self, times, max_sizes):
+        time_mean = np.mean(times)
+        time_std = np.std(times)
+        max_mean = np.mean(max_sizes)
+        max_std = np.std(max_sizes)
+        return time_mean, time_std, max_mean, max_std
+
+    def _rexp(self, rate):
+        u = np.random.uniform(0, 1)
+        rexp = -np.log(1 - u)/rate
+        return rexp
+        # return np.random.exponential(1/rate)
+
+
 def main():
     print('Exercise 1')
     print()
@@ -82,7 +152,21 @@ def main():
         [(1, 38), (4, 14), (9, 31), (21, 42), (28, 84), (36, 44), (51, 67), (71, 91), (80, 100)])
     c_mean, c_std = c.simulation()
     print('Mean = {:6.3f}, std = {:6.3f}'.format(c_mean, c_std))
-    print()   
+    print()
+
+    print('Exercise 2')
+    print()
+
+    print('Exercise a)')
+    row = MMInfinity(lambda_=1.4, mu=1.3)
+    time_mean, time_std, max_mean, max_std = row.simulation()
+    print('Mean = {:6.3f}, std = {:6.3f}'.format(time_mean, time_std))
+    print()
+
+    print('Exercise b)')
+    print('Mean = {:6.3f}, std = {:6.3f}'.format(max_mean, max_std))
+    print()
+
     
 if __name__ == '__main__':
     main()
