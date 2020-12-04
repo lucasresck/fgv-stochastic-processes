@@ -127,6 +127,80 @@ class MMInfinity():
         return rexp
         # return np.random.exponential(1/rate)
 
+class Brownian():
+    '''
+    Simulate the Brownian motion.
+
+    Parameters
+    ----------
+    sigma_2 : float
+        The diffusion coefficient
+    drift : float
+        The drift
+    start : float
+        Start of Brownian motion
+    end : float
+        End of Brownian motion
+    delta_t : float
+        The partition size of [start, end]
+    M : float
+        Value to be calculated the median of time to it be achieved
+    '''
+    def __init__(self, sigma_2=1, drift=0, start=0, end=10, delta_t=0.01, M=-1.5):
+        self.sigma_2 = sigma_2
+        self.drift = drift
+        self.start = start
+        self.end = end
+        self.delta_t = delta_t
+        self.M = M
+        np.random.seed(42)
+
+    def simulation(self):
+        '''
+        Simulate 1000 times the Brownian motion.
+        
+        Returns
+        -------
+        max_90_quantile : float
+            The 0.9-quantile of maximum of Brownian motion
+        tau_median : float
+            The median of time to achieve M
+        '''
+        max_Bs = []
+        taus = []
+        for _ in range(1000):
+            max_B, tau = self._round()
+            max_Bs.append(max_B)
+            taus.append(tau)
+
+        return self._report(max_Bs, taus)
+
+    def _round(self):
+        B = 0
+        max_B = B
+        tau = 0
+        ts = np.arange(self.start + self.delta_t, self.end + self.delta_t, self.delta_t)
+        B_old = B
+        M_positive = self.M > 0
+        for t in ts:
+            normal = np.random.normal()
+            B = B_old + np.sqrt(self.delta_t)*np.sqrt(self.sigma_2)*normal + self.delta_t*self.drift
+            if B > max_B:
+                max_B = B
+            if M_positive == True and tau == 0 and B > self.M:
+                tau = t
+            if M_positive == False and tau == 0 and B < self.M:
+                tau = t
+            B_old = B
+        if tau == 0:
+            tau = 10
+        return max_B, tau
+
+    def _report(self, max_Bs, taus):
+        max_90_quantile = np.quantile(max_Bs, 0.9)
+        tau_median = np.median(taus)
+        return max_90_quantile, tau_median
+
 
 def main():
     print('Exercise 1')
@@ -165,6 +239,29 @@ def main():
 
     print('Exercise b)')
     print('Mean = {:6.3f}, std = {:6.3f}'.format(max_mean, max_std))
+    print()
+
+    print('Exercise 3')
+    print()
+
+    print('Exercise a)')
+    no_drift = Brownian()
+    max_90_quantile, tau_median = no_drift.simulation()
+    print('Max value 90-quantile = {:6.3f}'.format(max_90_quantile))
+    print()
+
+    print('Exercise c)')
+    print('Median of time to achieve M = {:6.3f}'.format(tau_median))
+    print()
+
+    print('Exercise e)')
+    drift = Brownian(drift=-0.14)
+    max_90_quantile, tau_median = drift.simulation()
+    print('Max value 90-quantile = {:6.3f}'.format(max_90_quantile))
+    print()
+
+    print('Exercise f)')
+    print('Median of time to achieve M = {:6.3f}'.format(tau_median))
     print()
 
     
